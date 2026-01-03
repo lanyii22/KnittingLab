@@ -1,0 +1,234 @@
+﻿<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virtual Knit Playground - Glue Only</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="./styles.css" />
+
+  <!-- Import map -->
+  <script type="importmap">
+  {
+    "imports": {
+      "d3": "https://cdn.jsdelivr.net/npm/d3@7/+esm",
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+
+<body>
+
+  <!-- ================= LEFT SIDEBAR ================= -->
+  <aside>
+    <h1>Virtual Knit Playground</h1>
+    <button id="themeToggle" class="theme-slider" type="button" aria-label="Toggle day/night mode">
+      <span class="theme-slider__label theme-slider__label--day">DAY MODE</span>
+      <span class="theme-slider__label theme-slider__label--night">NIGHT MODE</span>
+      <span class="theme-slider__thumb">
+        <span class="icon-sun"></span>
+        <span class="icon-moon"></span>
+      </span>
+    </button>
+    
+
+    <h2>Gauge (10 cm)</h2>
+    <div class="two">
+      <div class="control">
+        <label>Stitches</label>
+        <input id="gaugeSts" type="number" min="4" max="60" value="14" />
+      </div>
+      <div class="control">
+        <label>Rows</label>
+        <input id="gaugeRows" type="number" min="4" max="60" value="14" />
+      </div>
+    </div>
+
+    <h2>Row editor</h2>
+    <p>Knit / Purl / Miss / Tuck / YO / K2tog / SSK / Space</p>
+
+    <div class="row-editor">
+      <button class="ghost" data-stitch="knit" type="button">Knit</button>
+      <button class="ghost" data-stitch="purl" type="button">Purl</button>
+      <button class="ghost" data-stitch="miss" type="button">Miss</button>
+
+      <button class="ghost" data-stitch="tuck" type="button">Tuck</button>
+      <button class="ghost" data-stitch="yo" type="button">YO</button>
+      <button class="ghost" data-stitch="k2tog" type="button">K2tog</button>
+      <button class="ghost" data-stitch="ssk" type="button">SSK</button>
+      <button class="ghost" data-stitch="space" type="button">Space</button>
+    </div>
+    <div class="two">
+      <button id="cursorLeft" class="ghost" type="button">Cursor &larr;</button>
+      <button id="cursorRight" class="ghost" type="button">Cursor &rarr;</button>
+    </div>
+
+    <h2>Examples</h2>
+    <div class="row-editor">
+      <button id="exStockinette" class="ghost" type="button">Stockinette (Color)</button>
+      <button id="exRib" class="ghost" type="button">Rib 1x1</button>
+      <button id="exSeed" class="ghost" type="button">Miss Stitch</button>
+      <button id="exIncrease" class="ghost" type="button">Increase (YO)</button>
+      <button id="exDecrease" class="ghost" type="button">Decrease (K2tog/SSK)</button>
+      <button id="exStripeRadius" class="ghost" type="button">Stripe (4 colors + radius)</button>
+      <button id="exArgyle" class="ghost" type="button">Argyle (Color)</button>
+      <button id="exTransparent" class="ghost" type="button">Transparent Line</button>
+      <button id="exTransparentDiamond" class="ghost" type="button">Transparent Diamond</button>
+    </div>
+
+    <div class="two">
+      <button id="newRow" class="primary" type="button">New Row</button>
+      <button id="undo" class="ghost" type="button">Undo &larrhk;</button>
+    </div>
+
+    <div class="two">
+      <button id="reset" class="ghost" type="button">Reset</button>
+      <button id="relax" class="primary" type="button">Run 3D</button>
+    </div>
+
+    <h2>3D</h2>
+    <div class="two">
+      <div class="control">
+        <label>Yarn radius (x)</label>
+        <input id="yarnRadius" type="number" min="0.2" max="4.0" step="0.05" value="1.00" />
+      </div>
+      <div class="control">
+        <label>Yarn color</label>
+        <input id="yarnColor" type="color" value="#e1c77a" />
+      </div>
+    </div>
+    <h2>Color Palette</h2>
+
+<div class="color-palette">
+  <div class="palette-row">
+    <span class="palette-label">Recent</span>
+    <div id="recentColors" class="palette-swatches"></div>
+  </div>
+</div>
+
+    <div class="two">
+      <button id="transparentToggle" class="ghost" type="button">Transparent OFF</button>
+    </div>
+
+    <div class="two">
+      <button id="viewFront" class="ghost" type="button">Lock Front View</button>
+      <button id="viewFree" class="ghost" type="button">Free Orbit</button>
+    </div>
+
+    <div class="two">
+      <div class="control">
+        <label>Detail</label>
+        <select id="detail">
+          <option value="low">Low</option>
+          <option value="med" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Relax steps</label>
+        <input id="relaxSteps" type="number" min="30" max="2000" value="450" />
+      </div>
+    </div>
+
+    <div class="two">
+      <div class="control">
+        <label>Show sim canvases</label>
+        <select id="showSim">
+          <option value="0" selected>No</option>
+          <option value="1">Yes</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>3D scale</label>
+        <input id="scale3d" type="number" min="0.001" max="0.1" step="0.001" value="0.01" />
+      </div>
+    </div>
+    <div class="control">
+      <label>Row height scale</label>
+      <input id="rowHeightScale" type="number" min="0.5" max="3.0" step="0.05" value="1.00" />
+    </div>
+    <h2>Row thickness</h2>
+    <div class="control">
+      <label>Row number (bottom = 1)</label>
+      <input id="rowThicknessRow" type="text" placeholder="e.g. 1-3, 5, 8" value="" />
+      <div id="rowThicknessLabel">None</div>
+    </div>
+    <div class="two align-bottom">
+      <div class="control">
+        <label>Row thickness scale</label>
+        <input id="rowThicknessScale" type="number" min="0.5" max="3.0" step="0.05" value="1.00" />
+      </div>
+      <button id="rowThicknessApply" class="ghost small mini" type="button">Apply</button>
+    </div>
+    <div class="hint">Row input supports ranges like 1-3 and lists like 1, 4, 6.</div>
+    <div id="threeWarn" class="warn"></div>
+    <div id="selfTestOk" class="ok">Self-test: OK</div>
+
+    <div class="hint">
+     
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+    <section class="panel">
+      <div class="panelHead">
+        <div class="panelTitle">Material preview (2D)</div>
+        <div class="panelActions">
+          <button id="paletteToggle" class="icon-btn ghost small" type="button" title="Cycle color palette">🎨↻</button>
+        </div>
+        <div class="panelTitle" id="meta1"></div>
+      </div>
+      <canvas id="fabric" width="720" height="720"></canvas>
+    </section>
+
+    <section class="panel">
+      <div class="panelHead">
+        <div class="panelTitle">Stitch chart (2D)</div>
+        <div class="panelTitle" id="meta2"></div>
+      </div>
+      <canvas id="chart" width="720" height="720"></canvas>
+    </section>
+
+    <section class="panel" id="panel3d">
+      <div class="panelHead">
+        <div class="panelTitleStack">
+          <div class="panelTitle">3D preview (yarnPath -> Tube)</div>
+          <div class="panelSubtitle">drag / zoom / rotate</div>
+        </div>
+        <div class="panelActions">
+          <button id="threeFullscreen" class="ghost small" type="button">Fullscreen</button>
+        </div>
+      </div>
+
+      <div id="sim-container">
+        <div id="threeWrap">
+          <div id="threeOverlay">3D is loading...</div>
+        </div>
+
+      <div id="sim-canvases">
+        <canvas id="back"></canvas>
+        <canvas id="mid"></canvas>
+        <canvas id="front"></canvas>
+      </div>
+    </div>
+    <div class="hint">
+        Click "Run 3D" to rebuild the 3D view from the current 2D pattern.
+    </div>
+    </section>
+    <div id="panelResizer" class="panel-resizer" role="separator" aria-orientation="vertical" aria-label="Resize panels"></div>
+  </main>
+
+  <!-- JS ENTRY -->
+  <script type="module" src="./main.js"></script>
+
+</body>
+</html>
+
+
+
+
+
+
