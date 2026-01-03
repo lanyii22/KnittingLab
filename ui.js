@@ -10,7 +10,7 @@ let selectedRows = [];
 
 const BACKSLASH = '\\\\'.slice(0, 1);
 const SLASH = '/';
-const SYMBOL = { knit: '|', purl: '-', miss: 'M', tuck: 'T', yo: 'o', m1: 'o', k2tog: BACKSLASH, ssk: SLASH, space: ' ' };
+const SYMBOL = { knit: '|', purl: '-', miss: 'M', tuck: 'T', yo: 'o', m1: 'o', k2tog: SLASH, ssk:  BACKSLASH, space: ' ' };
 const MAX_RECENT_COLORS = 8;
 let recentColors = [];
 const recentColorsWrap = document.getElementById('recentColors');
@@ -404,22 +404,22 @@ function renderFabric2D() {
         const prev = row[x - 1];
         if (prev?.type === 'dec_pad') {
           const px = (x - 1) * stitchSize + stitchSize / 2;
-          fctx.moveTo(px - d, cy + d);
-          fctx.lineTo(cx + d, cy - d);
+          fctx.moveTo(px - d, cy - d);
+          fctx.lineTo(cx + d, cy + d);
         } else {
-          fctx.moveTo(cx + d, cy - d);
-          fctx.lineTo(cx - d, cy + d);
+          fctx.moveTo(cx - d, cy - d);
+          fctx.lineTo(cx + d, cy + d);
         }
       } else if (stitch.type === 'k2tog') {
         const d = stitchSize * 0.25;
         const next = row[x + 1];
         if (next?.type === 'dec_pad') {
           const nx = (x + 1) * stitchSize + stitchSize / 2;
-          fctx.moveTo(cx - d, cy - d);
-          fctx.lineTo(nx + d, cy + d);
+          fctx.moveTo(cx - d, cy + d);
+          fctx.lineTo(nx + d, cy - d);
         } else {
-          fctx.moveTo(cx - d, cy - d);
-          fctx.lineTo(cx + d, cy + d);
+          fctx.moveTo(cx - d, cy + d);
+          fctx.lineTo(cx + d, cy - d);
         }
       }
       fctx.stroke();
@@ -473,7 +473,7 @@ function renderChart2D() {
           continue;
         }
         cctx.globalAlpha = getStitchOpacity(stitch);
-        if (stitch.type === 'ssk' && rowRef[x - 1]?.type === 'dec_pad') {
+        if (stitch.type === 'k2tog' && rowRef[x + 1]?.type === 'dec_pad') {
           cctx.beginPath();
           cctx.strokeStyle = stitch.color || '#e6e6eb';
           const stitchScale = Number.isFinite(stitch?.thickness) ? stitch.thickness : 1.0;
@@ -481,7 +481,7 @@ function renderChart2D() {
           cctx.moveTo(px - cell + cell * 0.2, py + cell - cell * 0.2);
           cctx.lineTo(px + cell - cell * 0.2, py + cell * 0.2);
           cctx.stroke();
-        } else if (stitch.type === 'k2tog' && rowRef[x + 1]?.type === 'dec_pad') {
+        } else if (stitch.type === 'ssk' && rowRef[x - 1]?.type === 'dec_pad') {
           cctx.beginPath();
           cctx.strokeStyle = stitch.color || '#e6e6eb';
           const stitchScale = Number.isFinite(stitch?.thickness) ? stitch.thickness : 1.0;
@@ -1203,4 +1203,5 @@ export function runSelfTests() {
   selfTestOk.style.display = 'block';
   selfTestOk.textContent = 'Self-test: OK';
 }
+
 
