@@ -456,7 +456,7 @@ function colorForLink(link) {
   const row = link.row;
   const col = link.col ?? 0;
 
-  // miss ?????锟斤�???????????
+  // miss 
   return getStitchColor(row, col);
 }
 function linkForPointIndex(state, pointIndex) {
@@ -467,18 +467,18 @@ function linkForPointIndex(state, pointIndex) {
   return links[k];
 }
 // ===============================
-// ?? True loop ?锟斤�??????????????
+// True loop
 // ===============================
 function isTrueLoopLink(link) {
   if (!link) return false;
   if (link.isCrossing === false) return false;
 
-  // knit crossing ??锟斤�??????loop
+  // knit crossing loop
   return link.isCrossing === true;
 }
 
 
-// ?锟斤�???????锟斤�?column jump??
+//column jump
 function isColumnJump(state, i) {
   if (i <= 0) return false;
   const a = state.yarnPath[i - 1];
@@ -492,20 +492,16 @@ function isColumnJump(state, i) {
     clear();
     apply3DTheme();
     function zPxForPoint(state, p, pointIndex, radiusPx) {
-  // ===============================
-  // 1?? ????????????锟斤�?
-  // ===============================
+  
   let z = 0;
 
-  // ?????????? link??path[k] -> path[k+1]??
+ 
   let link = linkForPointIndex(state, pointIndex);
 
   const allowLoop = isTrueLoopLink(link);
   const jump = isColumnJump(state, pointIndex);
 
-  // ===============================
-  // 2?? ???? Z ??????????????锟斤�?
-  // ===============================
+ 
   if (allowLoop) {
     z += radiusPx * 0.4;
   }
@@ -514,17 +510,13 @@ function isColumnJump(state, i) {
     z -= radiusPx * 0.2;
   }
 
-  // ===============================
-  // 3?? Column jump ????
-  // crossing + column jump ??????
-  // ===============================
+ 
+  // crossing + column jump 
+ 
   if (jump && link?.isCrossing) {
     link = null;
   }
 
-  // ===============================
-  // 4?? Crossing ??锟斤�????????
-  // ===============================
   if (
     !link?.isCrossing &&
     pointIndex > 0 &&
@@ -536,15 +528,12 @@ function isColumnJump(state, i) {
     }
   }
 
-  // ===============================
-  // 5?? Link ???????????
-  // ===============================
   if (link) {
     z = zFromLink(link, radiusPx);
   }
 
   // ===============================
-  // 6?? Crossing ????????????????
+  //Crossing 
   // ===============================
   if (link?.isCrossing) {
     const over =
@@ -555,7 +544,7 @@ function isColumnJump(state, i) {
   }
 
   // ===============================
-  // 7?? Head / Leg ???????????
+  // Head / Leg 
   // ===============================
   if (p?.cnType) {
     const hl = p.cnType[1] === 'H' ? +1 : -1;
@@ -563,7 +552,7 @@ function isColumnJump(state, i) {
   }
 
   // ===============================
-  // 8?? Stitch face bias by point type
+  //  Stitch face bias by point type
   // ===============================
   if (p?.cnType) {
     const st = state.nodes?.[p.cnIndex]?.st;
@@ -584,9 +573,7 @@ function isColumnJump(state, i) {
     }
   }
 
-  // ===============================
-  // 9?? ????锟斤�?????????
-  // ===============================
+
   const Z_MAX = radiusPx * 2.5;
   z = Math.max(-Z_MAX, Math.min(Z_MAX, z));
 
@@ -1268,23 +1255,7 @@ const rowEndPreXByRow = new Map();
   pathIndexForPts.push(i);
 
   // stitchKey mapping for yarn color
-  // Legacy true-loop stitchKey mapping (kept for reference; not used)
-  /*
-  // ??? link.row/link.col ????stitch??????? node.i/node.j ???
-  if (isTrueLoopLink(link)) {
-    const rowsN = CTX.getAppPattern().rows.length;
 
-    const row = Number.isFinite(link.row) ? link.row : 0;
-    const col = Number.isFinite(link.col) ? link.col : 0;
-
-    // 2D ?????????3D ??? visualRow ????
-    const visualRow = row;
-
-    keysForPts.push(`${visualRow}:${col}`);
-  } else {
-    keysForPts.push(null);
-  }
-  */
 
 
 }
@@ -1922,7 +1893,7 @@ if (isSpace && allowSpaceBridge && yarnPath[i]?.cnType === 'FBa') {
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.0);
 
   // ===============================
-// ??loop-aware tubularSegments
+// loop-aware tubularSegments
 // ===============================
 const detail = CTX.getDetail();
 
@@ -2349,6 +2320,7 @@ for (let r = 0; r < rings; r++) {
     controls.update();
   }
 }
+
 
 
 
