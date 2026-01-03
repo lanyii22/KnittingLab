@@ -445,12 +445,10 @@ body.theme-light .theme-slider__thumb{
   margin:auto;
 }
 .icon-sun::after{
-  content:'SUN';
-  font-size:14px;
+  content:'';
 }
 .icon-moon::after{
-  content:'MOON';
-  font-size:14px;
+  content:'';
 }
 
 body.theme-light .theme-slider__label--day,
@@ -527,3 +525,4 @@ body.theme-light .theme-slider.night .theme-slider__thumb{
 .swatch:hover {
   outline: 2px solid rgba(183,166,255,0.8);
 }
+
