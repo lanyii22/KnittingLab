@@ -456,7 +456,7 @@ function colorForLink(link) {
   const row = link.row;
   const col = link.col ?? 0;
 
-  // miss ?????锟斤�???????????
+  // miss ?????锟斤�???????????
   return getStitchColor(row, col);
 }
 function linkForPointIndex(state, pointIndex) {
@@ -467,18 +467,18 @@ function linkForPointIndex(state, pointIndex) {
   return links[k];
 }
 // ===============================
-// ?? True loop ?锟斤�??????????????
+// ?? True loop ?锟斤�??????????????
 // ===============================
 function isTrueLoopLink(link) {
   if (!link) return false;
   if (link.isCrossing === false) return false;
 
-  // knit crossing ??锟斤�??????loop
+  // knit crossing ??锟斤�??????loop
   return link.isCrossing === true;
 }
 
 
-// ?锟斤�???????锟斤�?column jump??
+// ?锟斤�???????锟斤�?column jump??
 function isColumnJump(state, i) {
   if (i <= 0) return false;
   const a = state.yarnPath[i - 1];
@@ -493,7 +493,7 @@ function isColumnJump(state, i) {
     apply3DTheme();
     function zPxForPoint(state, p, pointIndex, radiusPx) {
   // ===============================
-  // 1?? ????????????锟斤�?
+  // 1?? ????????????锟斤�?
   // ===============================
   let z = 0;
 
@@ -504,7 +504,7 @@ function isColumnJump(state, i) {
   const jump = isColumnJump(state, pointIndex);
 
   // ===============================
-  // 2?? ???? Z ??????????????锟斤�?
+  // 2?? ???? Z ??????????????锟斤�?
   // ===============================
   if (allowLoop) {
     z += radiusPx * 0.4;
@@ -523,7 +523,7 @@ function isColumnJump(state, i) {
   }
 
   // ===============================
-  // 4?? Crossing ??锟斤�????????
+  // 4?? Crossing ??锟斤�????????
   // ===============================
   if (
     !link?.isCrossing &&
@@ -585,7 +585,7 @@ function isColumnJump(state, i) {
   }
 
   // ===============================
-  // 9?? ????锟斤�?????????
+  // 9?? ????锟斤�?????????
   // ===============================
   const Z_MAX = radiusPx * 2.5;
   z = Math.max(-Z_MAX, Math.min(Z_MAX, z));
@@ -654,6 +654,7 @@ function isColumnJump(state, i) {
   const rowBaseY = (rowIndex) => baseRowY0 + rowIndex * rowSpacing;
 
   const RawPattern = CTX.getAppPattern();
+  const rowsForInfo = Array.isArray(RawPattern?.rows) ? RawPattern.rows : [];
   const normalized = normalizeAppPattern(RawPattern);
   NORMALIZED_ROWS = normalized.rows;
   const AppPattern = { ...RawPattern, rows: NORMALIZED_ROWS };
@@ -670,6 +671,17 @@ function isColumnJump(state, i) {
     return Number.isFinite(v) ? v : 1.0;
   };
   const rowScaleForPath = new Array(state.yarnPath.length).fill(1.0);
+  const findNextRealFBa = (startIdx, rowTarget) => {
+    for (let i = startIdx; i < yarnPath.length; i++) {
+      const p = yarnPath[i];
+      if (!p || p.cnType !== 'FBa') continue;
+      const rowIdx = rowIndexForPath[i] ?? p.row ?? null;
+      if (rowTarget !== null && Number.isFinite(rowIdx) && rowIdx !== rowTarget) continue;
+      const key = resolvedStitchKeys[i];
+      if (key) return i;
+    }
+    return null;
+  };
   const stitchKeys = state.yarnPath.map((p, i) => {
     const node = state.nodes[p.cnIndex];
     if (!node) {
@@ -868,7 +880,7 @@ function isColumnJump(state, i) {
   let yoRightOnly = false;
   let yoBothSides = false;
 
-  AppPattern.rows.forEach((row, vr) => {
+  rowsForInfo.forEach((row, vr) => {
     let leadingSpaces = 0;
     for (let i = 0; i < (row?.length || 0); i++) {
       const st = row[i];
@@ -944,7 +956,7 @@ function isColumnJump(state, i) {
         const side = st.type === 'ssk' ? -1 : 1;
         const anchor = side > 0 ? expandedCol : expandedCol + 1;
         const source = side > 0 ? expandedCol + 1 : expandedCol;
-        decPairs.push({ simCol: expandedCol, anchor, source, side });
+        decPairs.push({ simCol: expandedCol, anchor, source, side, type: st.type });
         expandedCol += 2;
         continue;
       }
@@ -979,7 +991,7 @@ function isColumnJump(state, i) {
       }
     });
     rowInfo[vr].mergeShift = mergeShift;
-    decPairs.forEach(({ source, anchor }) => {
+    decPairs.forEach(({ source, anchor, type }) => {
       if (source >= 0 && source < rowInfo[vr].overlapTarget.length) {
         rowInfo[vr].overlapTarget[source] = anchor;
       }
@@ -1061,6 +1073,7 @@ const pointCol = [];
 const pointDisplayCol = [];
 const pointPatternRow = [];
 const pointPatternCol = [];
+const pointCnType = [];
   const pointIsHeadNode = [];
   const pointNode = [];
   const pointNx = [];
@@ -1251,6 +1264,7 @@ const rowEndPreXByRow = new Map();
   pointNx.push(nx);
   pointNy.push(ny);
   pointZ.push(zPx);
+  pointCnType.push(cnType);
   pathIndexForPts.push(i);
 
   // stitchKey mapping for yarn color
@@ -1285,13 +1299,103 @@ for (let i = 0; i < pointBaseX.length; i++) {
   headPos[vr][col] = { x: pointBaseX[i], z: pointZ[i] };
 }
 
+const headPosDisplay = rowInfo.map(() => ({}));
+for (let i = 0; i < pointBaseX.length; i++) {
+  if (!pointIsHeadNode[i]) continue;
+  const vr = pointLayoutRow[i];
+  const col = pointDisplayCol[i];
+  if (vr < 0 || vr >= rowInfo.length) continue;
+  if (!Number.isFinite(col)) continue;
+  headPosDisplay[vr][col] = { x: pointBaseX[i], z: pointZ[i] };
+}
+
+const lhPos = rowInfo.map(() => ({}));
+const lhIndex = rowInfo.map(() => ({}));
+for (let i = 0; i < pointBaseX.length; i++) {
+  const cn = pointCnType[i];
+  if (cn !== 'LHa' && cn !== 'LHb') continue;
+  const vr = pointLayoutRow[i];
+  const col = pointDisplayCol[i];
+  if (vr < 0 || vr >= rowInfo.length) continue;
+  if (!lhPos[vr][col]) lhPos[vr][col] = {};
+  lhPos[vr][col][cn] = { x: pointBaseX[i], y: pointBaseY[i], z: pointZ[i] };
+  if (!lhIndex[vr][col]) lhIndex[vr][col] = { LHa: [], LHb: [] };
+  lhIndex[vr][col][cn].push(i);
+}
+
+let k2togOverlapLogs = 0;
+rowInfo.forEach((info, vr) => {
+  if (!info || !info.decPairs) return;
+  info.decPairs.forEach(({ source, anchor, type }) => {
+    if (type !== 'k2tog') return;
+    const srcX = headPosDisplay[vr]?.[source]?.x;
+    const tgtX = headPosDisplay[vr]?.[anchor]?.x;
+    if (!Number.isFinite(srcX) || !Number.isFinite(tgtX)) return;
+    const leftCol = (srcX <= tgtX) ? source : anchor;
+    const rightCol = (srcX <= tgtX) ? anchor : source;
+    const zOffset = radiusPx * 0.15;
+    if (k2togOverlapLogs < 10) {
+      const leftLHaCount = (lhIndex[vr]?.[leftCol]?.LHa || []).length;
+      const leftLHbCount = (lhIndex[vr]?.[leftCol]?.LHb || []).length;
+      console.log('[K2togOverlap]', { vr, source, anchor, leftCol, rightCol, srcX, tgtX, leftLHaCount, leftLHbCount });
+      k2togOverlapLogs += 1;
+    }
+    const rightLHa = lhPos[vr]?.[rightCol]?.LHa;
+    const rightLHb = lhPos[vr]?.[rightCol]?.LHb;
+    if (rightLHa) {
+      const idxs = lhIndex[vr]?.[leftCol]?.LHa || [];
+      idxs.forEach((idx) => {
+        pointBaseX[idx] = rightLHa.x;
+        pointBaseY[idx] = rightLHa.y;
+        pointZ[idx] = rightLHa.z + zOffset;
+      });
+    }
+    if (rightLHb) {
+      const idxs = lhIndex[vr]?.[leftCol]?.LHb || [];
+      idxs.forEach((idx) => {
+        pointBaseX[idx] = rightLHb.x;
+        pointBaseY[idx] = rightLHb.y;
+        pointZ[idx] = rightLHb.z + zOffset;
+      });
+    }
+  });
+});
+
+
+// Recompute overlap targets using visual left/right so decreases match screen direction.
+k2togOverlapLogs = 0;
+rowInfo.forEach((info, vr) => {
+  if (!info || !info.decPairs) return;
+  info.overlapTarget = new Array((info.displayLen || info.len || 1)).fill(null);
+  info.decPairs.forEach(({ source, anchor, type }) => {
+    if (source < 0 || anchor < 0) return;
+    if (type === 'k2tog') return;
+    const srcPos = headPos[vr]?.[source];
+    const tgtPos = headPos[vr]?.[anchor];
+    const srcX = srcPos?.x;
+    const tgtX = tgtPos?.x;
+    if (!Number.isFinite(srcX) || !Number.isFinite(tgtX)) return;
+    const leftCol = (srcX <= tgtX) ? source : anchor;
+    const rightCol = (srcX <= tgtX) ? anchor : source;
+    const zOffset = radiusPx * 0.15;
+    if (k2togOverlapLogs < 10) {
+      const leftLHaCount = (lhIndex[vr]?.[leftCol]?.LHa || []).length;
+      const leftLHbCount = (lhIndex[vr]?.[leftCol]?.LHb || []).length;
+      console.log('[K2togOverlap]', { vr, source, anchor, leftCol, rightCol, srcX, tgtX, leftLHaCount, leftLHbCount });
+      k2togOverlapLogs += 1;
+    }
+    const overlapSource = (type === 'k2tog') ? rightCol : leftCol;
+    const overlapAnchor = (type === 'k2tog') ? leftCol : rightCol;
+    info.overlapTarget[overlapSource] = overlapAnchor;
+  });
+});
 const HEAD_OVERLAP_Z = radiusPx * 1.0;
 const HEAD_OVERLAP_X_RATIO = 1.0;
 
 for (let i = 0; i < pointBaseX.length; i++) {
   if (!pointIsHeadNode[i]) continue;
   const vr = pointLayoutRow[i];
-  const col = pointCol[i];
+  const col = pointDisplayCol[i];
   const info = rowInfo[vr];
   if (!info) continue;
   const target = info.overlapTarget?.[col];
@@ -1365,13 +1469,14 @@ for (let i = 0; i < pointBaseX.length; i++) {
     }
     return out;
   });
-
-  const mergeDelta = rowInfo.map(info => new Array(info.displayLen || info.len).fill(0));
-  rowInfo.forEach((info, vr) => {
+const mergeDelta = rowInfo.map(info => new Array(info.displayLen || info.len).fill(0));
+k2togOverlapLogs = 0;
+rowInfo.forEach((info, vr) => {
     const pairs = info.decPairs || [];
     if (!pairs.length) return;
-    pairs.forEach(({ source, anchor }) => {
+    pairs.forEach(({ source, anchor, type }) => {
       if (source < 0 || anchor < 0) return;
+    if (type === 'k2tog') return;
       if (source >= mergeDelta[vr].length || anchor >= mergeDelta[vr].length) return;
       const src = headCenter[vr]?.[source];
       const tgt = headCenter[vr]?.[anchor];
@@ -1444,6 +1549,36 @@ for (let i = 0; i < pointBaseX.length; i++) {
       Number.isFinite(currRow) &&
       Number.isFinite(prevRow) &&
       currRow !== prevRow;
+// --- PATCH: on row transition, skip "space FBa" but KEEP the bridge line ---
+if (isSpace && allowSpaceBridge && yarnPath[i]?.cnType === 'FBa') {
+  const targetRow = currRow;
+  let j = i;
+
+  // Prefer: first NON-space FBa in the new row
+  while (j < yarnPath.length && yarnPath[j]?.row === targetRow) {
+    const pr = pointPatternRow[j];
+    const pc = pointPatternCol[j];
+    if (!isSpacePoint(pr, pc) && yarnPath[j]?.cnType === 'FBa') break;
+    j++;
+  }
+
+  // Fallback: first non-space point in the new row
+  if (!(j < yarnPath.length && yarnPath[j]?.row === targetRow && !isSpacePoint(pointPatternRow[j], pointPatternCol[j]))) {
+    j = i;
+    while (j < yarnPath.length && yarnPath[j]?.row === targetRow) {
+      if (!isSpacePoint(pointPatternRow[j], pointPatternCol[j])) break;
+      j++;
+    }
+  }
+
+  // Jump forward (do NOT pushBreak; keep lastValidIndex so the bridge remains)
+  if (j > i && j < yarnPath.length && yarnPath[j]?.row === targetRow) {
+    i = j - 1; // -1 because for-loop will i++ next
+    continue;
+  }
+}
+// --- END PATCH ---
+
     if (isSpace && !allowSpaceBridge) {
       if (lastValidIndex !== null) pushBreak();
       lastValidIndex = null;
@@ -1461,22 +1596,23 @@ for (let i = 0; i < pointBaseX.length; i++) {
 
       const vr = pointRow[i];
       const info = (vr >= 0 && vr < rowInfo.length) ? rowInfo[vr] : null;
-      const maxStep = (info?.spacing || baseSpacing) * 2.0;
+      const maxStep = (info?.spacing || baseSpacing) * 2.0; 
       const dx = baseX - prevBaseX;
       const dy = baseY - prevBaseY;
       const segLen = Math.hypot(dx, dy);
+      const isBigJump = segLen > maxStep * 1.05;
 
       const prevSide = yarnPath[prevIndex]?.cnType?.[0] ?? null;
       const currSide = yarnPath[i]?.cnType?.[0] ?? null;
-      const sameSide = prevSide && prevSide === currSide;
-      const sideSign = sameSide ? (prevSide === 'F' ? 1 : -1) : 0;
-      const curveScale = sameSide ? Math.min(1, segLen / Math.max(1e-6, maxStep * 0.6)) : 0;
       const prevRow = yarnPath[prevIndex]?.row;
       const currRow = yarnPath[i]?.row;
       const isRowTransition =
         Number.isFinite(prevRow) &&
         Number.isFinite(currRow) &&
         prevRow !== currRow;
+      const sameSide = !isRowTransition &&prevSide && prevSide === currSide;
+      const sideSign = sameSide ? (prevSide === 'F' ? 1 : -1) : 0;
+      const curveScale = sameSide ? Math.min(1, segLen / Math.max(1e-6, maxStep * 0.6)) : 0;
       const prevVr = pointRow[prevIndex];
       const currVr = pointRow[i];
       const prevShift = Number.isFinite(prevVr) ? (rowShift[prevVr] || 0) : 0;
@@ -1524,7 +1660,7 @@ for (let i = 0; i < pointBaseX.length; i++) {
         const midNx = prevNx + (nx - prevNx) * t;
         const midNy = prevNy + (ny - prevNy) * t;
         let midZ = prevZ + (zPx - prevZ) * t;
-        if (sideSign && curveScale) {
+        if (sideSign && curveScale && !isBigJump) {
           const shape = Math.sin(Math.PI * t);
           midZ += sideSign * radiusPx * CURVE_Z_RATIO * curveScale * shape * purlSign;
         }
@@ -1707,15 +1843,15 @@ for (let i = 0; i < pointBaseX.length; i++) {
       if (isRowChange) {
         // keep the FBb->FBa half by overlapping one point into next span
         if (i + 1 <= end) {
-          out.push([segStart, i + 1, isTransparent, spanScale]);
+          out.push([segStart, i + 1, isTransparent, spanScale, true]);
           segStart = i;
         } else {
-          out.push([segStart, i, isTransparent, spanScale]);
+          out.push([segStart, i, isTransparent, spanScale, true]);
           segStart = i;
         }
       }
     }
-    if (segStart < end) out.push([segStart, end, isTransparent, spanScale]);
+    if (segStart < end) out.push([segStart, end, isTransparent, spanScale, false]);
     return out;
   };
   if (renderSegments.length) {
@@ -1729,7 +1865,7 @@ for (let i = 0; i < pointBaseX.length; i++) {
   const totalPtCount = allPts.reduce((sum, p) => sum + (p ? 1 : 0), 0);
   let debugLogged = false;
 
-  const buildMeshForSegment = (segStart, segEnd, isTransparent, rowScale = 1.0) => {
+  const buildMeshForSegment = (segStart, segEnd, isTransparent, rowScale = 1.0, isRowChange = false) => {
     // slice raw arrays
     const rawPts = allPts.slice(segStart, segEnd);
     const rawPtsPathIndex = allPtsPathIndex.slice(segStart, segEnd);
@@ -1780,7 +1916,8 @@ for (let i = 0; i < pointBaseX.length; i++) {
       boundaryLastLocalIdx = localIdx;
     }
 
-  if (pts.length < 6) return;
+  const minPts = isRowChange ? 2 : 6;
+  if (pts.length < minPts) return;
 
   const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.0);
 
@@ -2179,7 +2316,7 @@ for (let r = 0; r < rings; r++) {
 
   };
 
-  renderSegments.forEach(([start, end, isTransparent, rowScale]) => buildMeshForSegment(start, end, isTransparent, rowScale));
+  renderSegments.forEach(([start, end, isTransparent, rowScale, isRowChange]) => buildMeshForSegment(start, end, isTransparent, rowScale, isRowChange));
 
   if (!meshes.length) return;
 
@@ -2212,6 +2349,22 @@ for (let r = 0; r < rings; r++) {
     controls.update();
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
