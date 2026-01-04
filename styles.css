@@ -527,7 +527,7 @@ body.theme-light .theme-slider.night .theme-slider__thumb{
 }
 .github-icon {
   position: absolute;
-  top: 20px;
+  top: 25px;
   right: 12px;
   color: #808080;
   font-size: 22px;
@@ -538,6 +538,7 @@ body.theme-light .theme-slider.night .theme-slider__thumb{
 .github-icon:hover {
   color: #666;
 }
+
 
 
 
