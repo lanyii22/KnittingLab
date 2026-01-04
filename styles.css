@@ -525,4 +525,19 @@ body.theme-light .theme-slider.night .theme-slider__thumb{
 .swatch:hover {
   outline: 2px solid rgba(183,166,255,0.8);
 }
+.github-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: #000;
+  font-size: 22px;
+  text-decoration: none;
+  z-index: 1000;
+}
+
+.github-icon:hover {
+  color: #666;
+}
+
+
 
