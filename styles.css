@@ -529,7 +529,7 @@ body.theme-light .theme-slider.night .theme-slider__thumb{
   position: absolute;
   top: 12px;
   right: 12px;
-  color: #000;
+  color: #555;
   font-size: 22px;
   text-decoration: none;
   z-index: 1000;
@@ -538,6 +538,7 @@ body.theme-light .theme-slider.night .theme-slider__thumb{
 .github-icon:hover {
   color: #666;
 }
+
 
 
 
